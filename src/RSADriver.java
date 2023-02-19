@@ -6,6 +6,7 @@ public class RSADriver {
     static public BigInteger encrypt(BigInteger n, BigInteger publicKey, BigInteger message){
         return message.modPow(publicKey,n);
     }
+
     static public BigInteger[] findValues(BigInteger p, BigInteger q, BigInteger publicKey){
         if (!p.isProbablePrime(1000000)){
             throw new IllegalArgumentException("p must be prime");
