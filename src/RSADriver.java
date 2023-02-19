@@ -5,10 +5,21 @@ public class RSADriver {
         return message.modPow(publicKey,n);
     }
     static public BigInteger[] findValues(BigInteger p, BigInteger q, BigInteger publicKey){
-        // TODO: write error catching
+        if (!p.isProbablePrime(1000000)){
+            throw new IllegalArgumentException("p must be prime");
+        }
+
+        if (!q.isProbablePrime(1000000)){
+            throw new IllegalArgumentException("q must be prime");
+        }
+
         BigInteger n = p.multiply(q);
         BigInteger charTotient = chrt(p,q);
         BigInteger privateKey = publicKey.modInverse(charTotient);
+
+        if (!n.gcd(publicKey).equals(BigInteger.ONE)){
+            throw new IllegalArgumentException("the public key must be coprime with n");
+        }
         return new BigInteger[]{n, privateKey};
     }
 
