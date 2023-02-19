@@ -16,8 +16,8 @@ public class RSADriver {
         }
 
         BigInteger n = p.multiply(q);
-        BigInteger charTotient = chrt(p,q);
-        BigInteger privateKey = publicKey.modInverse(charTotient);
+        BigInteger carmTotient = findCarmTotient(p,q);
+        BigInteger privateKey = publicKey.modInverse(carmTotient);
 
         if (!n.gcd(publicKey).equals(BigInteger.ONE)){
             throw new IllegalArgumentException("the public key must be coprime with n");
@@ -25,13 +25,11 @@ public class RSADriver {
         return new BigInteger[]{n, privateKey};
     }
 
-    /*Charmichaiels totient is the LCM of p-1 and q-1, algo uses euclidean algo to calculate*/
-    static public BigInteger chrt(BigInteger p, BigInteger q){
+    /* Carmichael's totient function of p&q is the LCM of p-1 and q-1, algo uses euclidean algo to calculate*/
+    static public BigInteger findCarmTotient(BigInteger p, BigInteger q){
         p = p.subtract(BigInteger.ONE);
         q = q.subtract(BigInteger.ONE);
         return (p.multiply(q)).divide(p.gcd(q));
-
-
     }
 
     /*RSA decryption is c^d mod n*/
