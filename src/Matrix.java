@@ -1,9 +1,9 @@
 public class Matrix {
-    int[][] matrix;
-    int rows;
-    int columns;
-    public Matrix(int rows, int columns, int[] intString){
-        matrix = new int[rows][columns];
+    byte[][] matrix;
+    byte rows;
+    byte columns;
+    public Matrix(byte rows, byte columns, byte[] byteString){
+        matrix = new byte[rows][columns];
         this.rows = rows;
         this.columns = columns;
         int positionCount = 0;
@@ -25,14 +25,14 @@ public class Matrix {
 
         for (int i=0;i<rows;i++){
             for (int j=0;j<columns;j++){
-                matrix[j][i] = intString[positionCount];
+                matrix[j][i] = byteString[positionCount];
                 positionCount++;
             }
         }
     }
 
-    public void shiftMatrix(){
-        int[][] newMatrix = new int[rows][columns];
+    public void shiftMatrixRows(){
+        byte[][] newMatrix = new byte[rows][columns];
         for (int i=0;i<rows;i++){
             for (int j=0;j<columns;j++){
                 int transcribedLocation = (i + j) % rows;
