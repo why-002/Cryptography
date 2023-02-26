@@ -45,12 +45,16 @@ public class Matrix {
     public void printMatrix(){
         for (int i=0;i<rows;i++){
             for (int j = 0; j < columns; j++) {
-                System.out.print(Integer.toHexString(matrix[i][j]));
-                System.out.print(" ");
+                returnString.append(Integer.toHexString(matrix[i][j]));
+                returnString.append(" ");
+
+                if (matrix[i][j] < 16){
+                    returnString.append(" ");
+                }
             }
-            System.out.println();
+            returnString.append("\n");
         }
-        System.out.println();
+        return returnString.toString();
     }
 }
 
