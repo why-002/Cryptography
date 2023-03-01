@@ -33,6 +33,10 @@ public class Matrix {
         }
     }
 
+    public Matrix(){
+        this(4,4, new short[16]);
+    }
+
     public void shiftMatrixRows(){
         short[][] newMatrix = new short[rows][columns];
         for (int i=0;i<rows;i++){
@@ -106,6 +110,10 @@ public class Matrix {
         for (int columnIndex = 0; columnIndex < columns; columnIndex++){
             matrix[row] = replacement;
         }
+    }
+
+    public void replaceValue(int row, int column, short value){
+        matrix[row][column] = value;
     }
 
     public String toString(){
