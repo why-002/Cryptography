@@ -31,21 +31,35 @@ public class aesECB {
 
     }
 
-    public short subBytes(short original){
+    private short subByte(short original){
         short tensPlace = (short) (original >> 4);
         short onesPlace = (short) (original & 0b1111);
         return sBox[tensPlace][onesPlace];
     }
 
-    public short unSubBytes(short original){
+    private short unSubByte(short original){
         for (int rowIndex=0; rowIndex < sBox.length; rowIndex++){
-            for (int colIndex=0; colIndex < sBox.length; rowIndex++){
+            for (int colIndex=0; colIndex < sBox.length; colIndex++){
                 if (sBox[rowIndex][colIndex] == original){
                     return (short) (rowIndex << 4 | colIndex);
                 }
             }
         }
         return -1;
+    }
+
+    private short[] subBytes(short[] bytes){
+        for (int colIndex=0; colIndex < bytes.length;colIndex++){
+            bytes[colIndex] = subByte(bytes[colIndex]);
+        }
+        return bytes;
+    }
+
+    private short[] unSubBytes(short[] bytes){
+        for (int colIndex=0; colIndex < bytes.length;colIndex++){
+            bytes[colIndex] = unSubByte(bytes[colIndex]);
+        }
+        return bytes;
     }
     public void generateKeySchedule(){
         schedule[0] = key;
