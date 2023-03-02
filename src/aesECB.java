@@ -25,6 +25,10 @@ public class aesECB {
         {0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16},
     };
 
+    private short[][] mixColumnsMatrix = {
+            {2,3,1,1},{1,2,3,1},{1,1,2,3},{3,1,1,2}
+    };
+
     public aesECB(short[][] key, short[] message){
         this.key = key;
         this.message = message;
@@ -32,8 +36,8 @@ public class aesECB {
     }
 
     private short subByte(short original){
-        short tensPlace = (short) (original >> 4);
-        short onesPlace = (short) (original & 0b1111);
+        short tensPlace = (short) (original / 16);
+        short onesPlace = (short) (original % 16);
         return sBox[tensPlace][onesPlace];
     }
 
@@ -49,10 +53,11 @@ public class aesECB {
     }
 
     private short[] subBytes(short[] bytes){
+        short[] newBytes = new short[bytes.length];
         for (int colIndex=0; colIndex < bytes.length;colIndex++){
-            bytes[colIndex] = subByte(bytes[colIndex]);
+            newBytes[colIndex] = subByte(bytes[colIndex]);
         }
-        return bytes;
+        return newBytes;
     }
 
     private short[] unSubBytes(short[] bytes){
@@ -73,8 +78,7 @@ public class aesECB {
 
     private short[] generateComplexKey(short[] previous, int round){
         short[] newKey = rotArray(previous, 1);
-
-        // TODO write Subwords here
+        newKey = subBytes(newKey);
         newKey = addIntToColumn(newKey, roundKey[round]);
         newKey = addColumns(newKey, schedule[round-1][0]);
         return newKey;
@@ -89,16 +93,17 @@ public class aesECB {
     }
 
     private short[] addIntToColumn(short[] col, int val){
+        short[] newCol = new short[col.length];
         for (int i=0;i < 4; i++){
-            col[i] += val;
+            newCol[i] += val;
         }
-        return col;
+        return newCol;
     }
 
     private short[] addColumns(short[] col1, short[] col2){
         short[] newCol = new short[4];
         for (int row=0; row < 4; row++){
-            newCol[row] = (short) (col1[row] ^ col2[row]);
+            newCol[row] = (short) ((col1[row] ^ col2[row]) % 256);
         }
         return newCol;
     }
@@ -122,7 +127,7 @@ public class aesECB {
         return (short)total;
     }
 
-    public short[][] rotateRows(short[][] matrix){
+    private short[][] rotateRows(short[][] matrix){
         short[][] tempArray = new short[4][4];
         for (int row=0; row<4;row++){
             for (int col=0; col < 4;col++){
@@ -130,5 +135,86 @@ public class aesECB {
             }
         }
         return tempArray;
+    }
+
+    public short[] mixColumns(short[] vector){
+        short[] finalVector = new short[4];
+        for (int rowIndex = 0; rowIndex < 4; rowIndex++) {
+            short tempVal = 0;
+            for (int colIndex = 0; colIndex < 4; colIndex++) {
+                tempVal += finiteFieldMultiply(mixColumnsMatrix[rowIndex][colIndex],vector[colIndex]);
+            }
+            finalVector[rowIndex] = (short) (tempVal % 256);
+        }
+        return finalVector;
+    }
+    public short[] encryptMessage(){
+        // Todo turn message into matricies
+        generateKeySchedule();
+        short[][][] matricies = new short[message.length / 4 + 1][4][4];
+        short[] newMessage = new short[(message.length / 4 + 1) * 16];
+        for (int index=0; index < message.length; index++){
+            newMessage[index] = message[index];
+        }
+        for (int index=message.length; index < newMessage.length; index++){
+            newMessage[index] =  (short)(16 - message.length % 16);
+        }
+
+
+
+
+
+        int count = 0;
+        for (int matriceNum = 0; matriceNum < newMessage.length / 16; matriceNum++){
+            for (int column=0; column < 4; column++){
+                for (int row=0; row < 4; row++){
+                    matricies[matriceNum][column][row] = newMessage[count];
+                    count++;
+                }
+            }
+        }
+
+        for (int matrice=0; matrice < (newMessage.length / 16); matrice++) {
+            // Addition of the first round key
+            for (int column = 0; column < 4; column++) {
+                matricies[matrice][column] = addColumns(matricies[matrice][column],schedule[0][column]);
+            }
+
+            for (int round = 0; round < 9; round++) {
+                for (int column = 0; column < 4; column++) {
+                    matricies[matrice][column] = subBytes(matricies[matrice][column]);
+                }
+
+                matricies[matrice] = rotateRows(matricies[matrice]);
+
+                for (int column = 0; column < 4; column++) {
+                    matricies[matrice][column] = mixColumns(matricies[matrice][column]);
+                }
+
+                for (int column = 0; column < 4; column++) {
+                    matricies[matrice][column] = addColumns(matricies[matrice][column],schedule[round][column]);
+                }
+                int x = 3;
+            }
+
+            for (int column = 0; column < 4; column++) {
+                matricies[matrice][column] = subBytes(matricies[matrice][column]);
+                matricies[matrice] = rotateRows(matricies[matrice]);
+                matricies[matrice][column] = addColumns(matricies[matrice][column],schedule[10][column]);
+            }
+        }
+        // Todo turn back into array
+
+        short[] finalArray = new short[newMessage.length];
+        count = 0;
+        for (int matriceNum = 0; matriceNum < newMessage.length / 16; matriceNum++){
+            for (int column=0; column < 4; column++){
+                for (int row=0; row < 4; row++){
+                    finalArray[count] = matricies[matriceNum][column][row];
+                    count++;
+                }
+            }
+        }
+        return finalArray;
     }
 }
