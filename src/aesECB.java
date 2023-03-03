@@ -68,7 +68,7 @@ public class aesECB {
     }
     public void generateKeySchedule(){
         schedule[0] = key;
-        for (int round=1; round < 10; round++){
+        for (int round=1; round < 11; round++){
             schedule[round][0] = generateComplexKey(schedule[round-1][3], round);
             for (int col = 1; col < 4; col++){
                 schedule[round][col] = addColumns(schedule[round][col-1],schedule[round-1][col]);
@@ -79,7 +79,7 @@ public class aesECB {
     private short[] generateComplexKey(short[] previous, int round){
         short[] newKey = rotArray(previous, 1);
         newKey = subBytes(newKey);
-        newKey = addIntToColumn(newKey, roundKey[round]);
+        newKey[0] ^= roundKey[round-1];
         newKey = addColumns(newKey, schedule[round-1][0]);
         return newKey;
     }
@@ -138,13 +138,14 @@ public class aesECB {
     }
 
     public short[] mixColumns(short[] vector){
+        // this is completely wrong
         short[] finalVector = new short[4];
         for (int rowIndex = 0; rowIndex < 4; rowIndex++) {
             short tempVal = 0;
             for (int colIndex = 0; colIndex < 4; colIndex++) {
-                tempVal += finiteFieldMultiply(mixColumnsMatrix[rowIndex][colIndex],vector[colIndex]);
+                tempVal ^= finiteFieldMultiply(mixColumnsMatrix[colIndex][rowIndex],vector[colIndex]);
             }
-            finalVector[rowIndex] = (short) (tempVal % 256);
+            finalVector[rowIndex] = tempVal;
         }
         return finalVector;
     }
